@@ -1,21 +1,18 @@
-get-spwebapplication | get-spsite -limit All| Select -First 2 | get-spweb -piplinevariable web |   foreach{
-    $webAssignment = start-spassignment
+$users="i\:0e\.t\|quintilessso\|nilesh.pawar@quintiles.com","i\:0e\.t\|quintilessso\|mohdtahajani.shaikh@iqvia.com"
+$regex = ".*($($users -Join "|")).*"
 
-    $users="Domain\User1","Domain\User2","Domain\User3"
-    $regex = ".*($($users -Join "|")).*"
+get-spwebapplication |get-spsite -Limit All | get-spweb -Limit All -PipelineVariable web |   foreach{
+    $webAssignment = start-spassignment    
 
-    write-Host "Processing $($web.Url)"
-    $web | get-spuser -limit All -piplinevarable User| foreach{
+    write-Host "============================================`n Processing $($web.Url) `n============================================" -ForegroundColor DarkYellow
+    $web | get-spuser -limit All -PipelineVariable User| foreach{
 
     if($user -notmatch $regex){
-
-        write-host "Removing User $($user.UserLogin)"
-        $web | remove-spuser $user
-
-
-} else {
-        Write-Host "Skipping User $user"
-        } #closing Else
+        write-host "Removing User $($user.UserLogin)" -ForegroundColor Yellow
+        $web | remove-spuser $user -WhatIf
+    } else {
+            Write-Host "Skipping User $user" -ForegroundColor Red
+            } #closing Else
     } #Closing Users
     $_.dispose();
     $webAssignment | stop-spassignment
